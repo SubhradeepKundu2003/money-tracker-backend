@@ -14,16 +14,35 @@ import org.springframework.data.repository.query.Param;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    Optional<Transaction> findByIdAndUserId(UUID id, UUID userId);
-
+    // Fetch-join account/category so DTO mapping (which reads their names) runs
+    // against initialized associations — responses are built after the service
+    // transaction closes, so lazy proxies would fail with no open session.
     @Query("""
             select t from Transaction t
+            join fetch t.account
+            left join fetch t.category
+            where t.id = :id and t.user.id = :userId
+            """)
+    Optional<Transaction> findByIdAndUserId(@Param("id") UUID id, @Param("userId") UUID userId);
+
+    @Query(value = """
+            select t from Transaction t
+            join fetch t.account
+            left join fetch t.category
             where t.user.id = :userId
               and (:accountId is null or t.account.id = :accountId)
               and (:type is null or t.type = :type)
               and (:from is null or t.occurredOn >= :from)
               and (:to is null or t.occurredOn <= :to)
             order by t.occurredOn desc, t.createdAt desc
+            """,
+            countQuery = """
+            select count(t) from Transaction t
+            where t.user.id = :userId
+              and (:accountId is null or t.account.id = :accountId)
+              and (:type is null or t.type = :type)
+              and (:from is null or t.occurredOn >= :from)
+              and (:to is null or t.occurredOn <= :to)
             """)
     Page<Transaction> search(
             @Param("userId") UUID userId,
