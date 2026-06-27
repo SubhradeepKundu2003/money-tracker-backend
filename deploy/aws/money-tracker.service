@@ -1,0 +1,25 @@
+[Unit]
+Description=Money Tracker Spring Boot backend
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=moneytracker
+Group=moneytracker
+WorkingDirectory=/opt/money-tracker
+EnvironmentFile=/opt/money-tracker/money-tracker.env
+# Cap the heap so the JVM + PostgreSQL both fit in ~1 GB RAM (+ swap headroom).
+# SerialGC has the smallest memory footprint for a low-traffic service.
+ExecStart=/usr/bin/java -Xms128m -Xmx384m -XX:+UseSerialGC -jar /opt/money-tracker/app.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+
+# Basic hardening
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
