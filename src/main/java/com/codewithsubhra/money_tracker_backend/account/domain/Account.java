@@ -35,7 +35,7 @@ public class Account extends BaseEntity {
     private AccountType type;
 
     @Column(nullable = false, length = 3)
-    private String currency = "USD";
+    private String currency = "INR";
 
     /** Running balance, kept in sync by the transaction service. */
     @Column(nullable = false, precision = 19, scale = 2)

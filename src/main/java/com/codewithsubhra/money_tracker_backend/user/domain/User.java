@@ -30,7 +30,7 @@ public class User extends BaseEntity {
 
     /** Default currency code (ISO 4217) used when creating accounts/transactions. */
     @Column(nullable = false, length = 3)
-    private String baseCurrency = "USD";
+    private String baseCurrency = "INR";
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
