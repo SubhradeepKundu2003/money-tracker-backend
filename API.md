@@ -76,6 +76,7 @@ Every endpoint returns the same shape.
 | 403 | `FORBIDDEN` | Authenticated but not allowed |
 | 404 | `NOT_FOUND` | Resource missing or not owned by you |
 | 500 | `INTERNAL_ERROR` | Unexpected server error |
+| 503 | `FX_UNAVAILABLE` | The exchange-rate provider couldn't be reached (currency endpoints) |
 
 > **Ownership = 404.** Every resource is scoped to the logged-in user. Asking for
 > someone else's account/transaction returns `404`, never another user's data.
@@ -136,6 +137,39 @@ Response `200`, `data: null`.
 
 ### GET `/api/auth/me` — _auth_
 Returns the current user object (same shape as `data.user` above).
+
+### PATCH `/api/me/base-currency` — _auth_
+Switches the user's base currency **and re-denominates all of their money into
+it at the current market rate**: every account's `balance` (and its `currency`),
+all of that account's transaction `amount`s, and any budgets/periods. The `from`
+rate is each account's existing currency; conversion uses live rates (frankfurter).
+```json
+{ "currency": "INR" }
+```
+- `currency`: a 3-letter ISO code that must be in `GET /api/currencies`.
+
+Response `200`: the updated user object (`baseCurrency` now reflects the change).
+Re-fetch accounts/transactions afterwards — their amounts have changed. Errors:
+`400 BAD_REQUEST` for an unsupported code, `503 FX_UNAVAILABLE` if rates can't be
+fetched (nothing is changed in that case — the switch is atomic).
+
+> Conversion is a single multiply per amount, so per-row rounding can differ by a
+> cent from the converted balance. Acceptable for a personal tracker.
+
+---
+
+## 3b. Currencies  `/api/currencies` — _auth_
+
+### GET `/api/currencies`
+Supported currencies for the client's base-currency dropdown, sorted by code.
+```json
+{ "success": true, "data": [
+  { "code": "AUD", "name": "Australian Dollar" },
+  { "code": "EUR", "name": "Euro" },
+  { "code": "INR", "name": "Indian Rupee" },
+  { "code": "USD", "name": "United States Dollar" }
+] }
+```
 
 ---
 

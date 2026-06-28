@@ -14,6 +14,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
+    /** All transactions on an account — used by the base-currency conversion. */
+    List<Transaction> findByAccountId(UUID accountId);
+
     // Fetch-join account/category so DTO mapping (which reads their names) runs
     // against initialized associations — responses are built after the service
     // transaction closes, so lazy proxies would fail with no open session.

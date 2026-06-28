@@ -27,6 +27,11 @@ app:
   cors:
     # Comma-separated list of allowed origins for the mobile/web client.
     allowed-origins: ${APP_CORS_ORIGINS:*}
+  fx:
+    # Foreign-exchange rate provider (frankfurter — free, no API key).
+    base-url: ${APP_FX_BASE_URL:https://api.frankfurter.dev/v1}
+    # How long fetched rates/currency list are cached, in minutes.
+    cache-ttl-minutes: ${APP_FX_CACHE_TTL_MINUTES:360}
 
 springdoc:
   swagger-ui:
