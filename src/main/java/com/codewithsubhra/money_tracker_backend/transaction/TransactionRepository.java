@@ -28,6 +28,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             """)
     Optional<Transaction> findByIdAndUserId(@Param("id") UUID id, @Param("userId") UUID userId);
 
+    // The date predicates use `cast(:from as date)` deliberately: a bare
+    // `:from is null` placeholder gives PostgreSQL no type context, so it fails
+    // the prepared statement with "could not determine data type of parameter".
+    // The cast tells the driver the parameter is a date.
     @Query(value = """
             select t from Transaction t
             join fetch t.account
@@ -35,8 +39,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             where t.user.id = :userId
               and (:accountId is null or t.account.id = :accountId)
               and (:type is null or t.type = :type)
-              and (:from is null or t.occurredOn >= :from)
-              and (:to is null or t.occurredOn <= :to)
+              and (cast(:from as date) is null or t.occurredOn >= :from)
+              and (cast(:to as date) is null or t.occurredOn <= :to)
             order by t.occurredOn desc, t.createdAt desc
             """,
             countQuery = """
@@ -44,8 +48,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             where t.user.id = :userId
               and (:accountId is null or t.account.id = :accountId)
               and (:type is null or t.type = :type)
-              and (:from is null or t.occurredOn >= :from)
-              and (:to is null or t.occurredOn <= :to)
+              and (cast(:from as date) is null or t.occurredOn >= :from)
+              and (cast(:to as date) is null or t.occurredOn <= :to)
             """)
     Page<Transaction> search(
             @Param("userId") UUID userId,
@@ -58,8 +62,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     @Query("""
             select t.type as type, sum(t.amount) as total from Transaction t
             where t.user.id = :userId
-              and (:from is null or t.occurredOn >= :from)
-              and (:to is null or t.occurredOn <= :to)
+              and (cast(:from as date) is null or t.occurredOn >= :from)
+              and (cast(:to as date) is null or t.occurredOn <= :to)
             group by t.type
             """)
     List<TypeTotal> summarize(

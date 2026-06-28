@@ -1,0 +1,9 @@
+spring:
+  jpa:
+    # Let Hibernate auto-detect the PostgreSQL dialect from the Testcontainers
+    # connection (the dev profile pins H2Dialect, which must not apply here).
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
